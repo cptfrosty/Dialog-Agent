@@ -32,7 +32,7 @@ settings = Settings()
 ## Последовательность работы системы
 **1. Инициализация:**
 
-```
+```python
 # Запуск всех компонентов
 bot = TelegramBot(token="YOUR_BOT_TOKEN")
 qdrant = QdrantManager(host="localhost")
