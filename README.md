@@ -6,28 +6,28 @@
 pydantic_settings - модуль библиотеки Pydantic для удобной работы с настройками приложения в Python-проектах. 
 Он позволяет автоматически загружать настройки из переменных окружения, .env-файлов, словарей и других источников в виде Pydantic-моделей — с валидацией, аннотациями типов и автозаполнением в IDE
 
-## Конфиг
+## Конфиг (.env)
 ```python
-from pydantic_settings import BaseSettings
+# Telegram
+telegram_bot_token = ""
+    
+# Qdrant
+qdrant_host = "localhost"
+qdrant_port = 6333
+    
+# AiTunnel
+aitunnel_api_key = "key"
+aitunnel_base_url ="https://api.aitunnel.ru/v1"
 
-class Settings(BaseSettings):
-    # Telegram
-    telegram_bot_token: str
-    admin_ids: list[int]
+# GigaChat
+GIGACHAT_CLIENT_ID = "***client_id"
+GIGACHAT_API_KEY = "***key"
+gigachat_model = "GigaChat-2-Max"
+gigachat_credentials = "200"
     
-    # Qdrant
-    qdrant_host: str = "localhost"
-    qdrant_port: int = 6333
-    
-    # AiTunnel
-    aitunnel_api_key: str = "key"
-    aitunnel_base_url: str = "https://api.aitunnel.ru/v1"
-    
-    # Model settings
-    embedding_model: str = "all-MiniLM-L6-v2"
-    llm_temperature: float = 0.7
-
-settings = Settings()
+# Model settings
+embedding_model = "all-MiniLM-L6-v2"
+llm_temperature = 0.7
 ```
 ## Последовательность работы системы
 **1. Инициализация:**
