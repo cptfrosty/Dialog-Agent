@@ -18,6 +18,7 @@ diploma_project/
 │   ├── llm/
 │   │   ├── __init__.py
 │   │   └── aitunnel_client.py # Клиент для AiTunnel
+│   │   └── gigachat_client.py # Клиент для AiTunnel
 │   └── vector_db/
 │       ├── __init__.py
 │       ├── qdrant_manager.py  # Менеджер Qdrant
