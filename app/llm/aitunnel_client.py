@@ -2,8 +2,8 @@ from openai import OpenAI
 from core.config import Settings
 
 class AITunnelClient:
-    def __init__(self):
-        self.api_key = Settings.aitunnel_api_key
+    def __init__(self, api_key: str):
+        self.api_key = api_key
         self.client = OpenAI(
                     self.api_key, # Ключ из нашего сервиса
                     base_url="https://api.aitunnel.ru/v1/",)

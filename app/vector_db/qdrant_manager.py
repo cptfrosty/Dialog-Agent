@@ -6,10 +6,10 @@ import numpy as np
 
 
 class QdrantManager:
-    def __init__(self, collection_name="test_db1"):
+    def __init__(self, host, collection_name="test_db1"):
         # Инициализируем в конструкторе
         self.encoder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-        self.client = QdrantClient(host="localhost", port=6333)
+        self.client = QdrantClient(host, port=6333)
         self.collection_name = collection_name
 
     def search_relevant_info(self, query, top_k=5):
