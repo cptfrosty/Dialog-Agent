@@ -1,7 +1,107 @@
 # database.py
 import hashlib
+import os
 import secrets
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import psycopg2
+from psycopg2 import sql
+
+class DataBase:
+    def __init__(self):
+
+        load_dotenv()
+
+        print("PGSQL_HOST:", os.getenv("PGSQL_HOST"))
+        print("PGSQL_PORT:", os.getenv("PGSQL_PORT")) 
+        print("PGSQL_USER:", os.getenv("PGSQL_USER"))
+        print("PGSQL_PASSWORD:", "***" if os.getenv("PGSQL_PASSWORD") else "NOT SET")
+
+        try:
+            
+            connection = self.create_connection_db()
+            # Создание курсора
+            cur = connection.cursor()
+            
+            # Выполнение запроса
+            cur.execute("SELECT version();")
+            
+            # Получение результата
+            version = cur.fetchone()
+            print(f"PostgreSQL version: {version[0]}")
+
+            connection.close()
+
+        except Exception as error:
+            print(f"Ошибка подключение к PGSQL: {error}")
+
+    def create_connection_db(self):
+        try:
+            connection = psycopg2.connect(
+                host = os.getenv("PGSQL_HOST"),
+                port = os.getenv("PGSQL_PORT"),
+                user = os.getenv("PGSQL_USER"),
+                password = os.getenv("PGSQL_PASSWORD")
+                # port - указывается самостоятельно
+            )
+
+            return connection
+        except Exception as error:
+            print(f"Ошибка подключение к PGSQL: {error}")
+            return None
+
+    def create_user(self, username, password):
+        """Создание нового пользователя"""
+        connection = self.create_connection_db()
+        try:
+            with connection.cursor() as cursor:
+                # Вызываем функцию PostgreSQL
+                cursor.execute(
+                    "SELECT create_user_check(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    (
+                        user_data['email'],
+                        user_data['password_hash'],
+                        user_data['role'],
+                        user_data['first_name'],
+                        user_data['last_name'],
+                        user_data['phone'],
+                        user_data['avatar_url'],
+                        user_data['is_active'],
+                        user_data['created_at'],
+                        user_data['updated_at'],
+                        user_data['last_login'],
+                        user_data['last_activity']
+                    )
+                )
+                    
+                # Получаем результат (true/false)
+                result = cursor.fetchone()[0]
+                connection.commit()
+                    
+                return result
+                    
+        except Exception as e:
+            Connection.rollback()
+            print(f"Ошибка при вызове функции: {e}")
+            return False
+
+        if username in self.users:
+            return False  # Пользователь уже существует
+        
+        password_hash, salt = self.hash_password(password)
+        
+        self.users[username] = {
+            "id": self.next_user_id,
+            "username": username,
+            "password_hash": password_hash,
+            "salt": salt,
+            "created_at": datetime.now(),
+            "is_active": True
+        }
+        self.next_user_id += 1
+        return True
+            
+
 
 class AuthDatabaseMock:
     def __init__(self):

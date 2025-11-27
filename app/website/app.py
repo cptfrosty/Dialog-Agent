@@ -2,11 +2,15 @@ import logging
 import streamlit as st
 from auth import AuthManager
 from utils import init_session_state, render_sidebar, render_chat_interface, render_auth_interface, render_test
+from object_relational_db.database import DataBase
 
 def main():
 
     logging.basicConfig(level=logging.DEBUG)
     logging.debug("sadfsa")
+
+    # Инициализация базы данных
+    relation_database_manager = DataBase()
 
     # Инициализация менеджера аутентификации
     auth_manager = AuthManager()
