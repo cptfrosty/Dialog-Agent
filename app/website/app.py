@@ -1,8 +1,13 @@
+import logging
 import streamlit as st
 from auth import AuthManager
-from utils import init_session_state, render_sidebar, render_chat_interface, render_auth_interface
+from utils import init_session_state, render_sidebar, render_chat_interface, render_auth_interface, render_test
 
 def main():
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.debug("sadfsa")
+
     # Инициализация менеджера аутентификации
     auth_manager = AuthManager()
     

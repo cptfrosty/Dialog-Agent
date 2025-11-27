@@ -1,8 +1,10 @@
+import logging
 import time
 import random
 
 class DialogAgent:
     def __init__(self):
+        logging.debug("--> Диалоговый агент инициализирован")
         self.responses = [
             "Привет! Я ваш AI ассистент. Чем могу помочь?",
             "Отличный вопрос! Давайте разберемся вместе.",
