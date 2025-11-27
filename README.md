@@ -64,7 +64,7 @@ agent = DialogAgent(qdrant, aitunnel)
 PS D:\projects\Python\Dialog-Agent> streamlit run app/website/app.py
 
 ## To-Do
-- [✔] Создание новых чатов
+- [x] Создание новых чатов
 - [ ] Привязка к базе данных PostgreSQL
 - [ ] Привязать агента, убрать mock
 - [ ] Сделать админ панель для добавления новых пользователей
