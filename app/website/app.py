@@ -7,7 +7,6 @@ from object_relational_db.database import DataBase
 def main():
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.debug("sadfsa")
 
     # Инициализация базы данных
     relation_database_manager = DataBase()
@@ -20,7 +19,7 @@ def main():
     
     # Если пользователь не авторизован, показываем интерфейс входа
     if not st.session_state.logged_in:
-        render_auth_interface(auth_manager)
+        render_auth_interface(auth_manager, relation_database_manager)
         st.stop()
     
     # ОСНОВНОЕ ПРИЛОЖЕНИЕ (после авторизации)

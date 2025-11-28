@@ -1,5 +1,6 @@
 # database.py
 import hashlib
+import json
 import os
 import secrets
 from datetime import datetime, timedelta
@@ -36,12 +37,14 @@ class DataBase:
             print(f"Ошибка подключение к PGSQL: {error}")
 
     def create_connection_db(self):
+        """Создание подключения к базе данных"""
         try:
             connection = psycopg2.connect(
                 host = os.getenv("PGSQL_HOST"),
                 port = os.getenv("PGSQL_PORT"),
                 user = os.getenv("PGSQL_USER"),
-                password = os.getenv("PGSQL_PASSWORD")
+                password = os.getenv("PGSQL_PASSWORD"),
+                dbname = os.getenv("PGSQL_DATABASE"),
                 # port - указывается самостоятельно
             )
 
@@ -50,57 +53,108 @@ class DataBase:
             print(f"Ошибка подключение к PGSQL: {error}")
             return None
 
-    def create_user(self, username, password):
+    def create_user(self, email, password, firstname, lastname, phone):
         """Создание нового пользователя"""
         connection = self.create_connection_db()
+
         try:
             with connection.cursor() as cursor:
+                # Шифрование пароля
+                password_hash, salt = self.hash_password(password=password, salt='agent')
+                
                 # Вызываем функцию PostgreSQL
-                cursor.execute(
-                    "SELECT create_user_check(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-                    (
-                        user_data['email'],
-                        user_data['password_hash'],
-                        user_data['role'],
-                        user_data['first_name'],
-                        user_data['last_name'],
-                        user_data['phone'],
-                        user_data['avatar_url'],
-                        user_data['is_active'],
-                        user_data['created_at'],
-                        user_data['updated_at'],
-                        user_data['last_login'],
-                        user_data['last_activity']
-                    )
-                )
+                cursor.callproc('create_user_check', [
+                    email,                   # p_email
+                    password_hash,           # p_password_hash
+                    "student",               # p_role
+                    firstname,               # p_first_name
+                    lastname,                # p_last_name
+                    phone,                   # p_phone
+                    "none",                  # p_avatar_url
+                    True,                    # p_is_active
+                    datetime.now(),          # p_created_at
+                    datetime.now(),          # p_updated_at
+                    datetime.now(),          # p_last_login
+                    datetime.now()           # p_last_activity
+                ])
+
                     
                 # Получаем результат (true/false)
                 result = cursor.fetchone()[0]
                 connection.commit()
-                    
-                return result
+                
+                if isinstance(result, str):
+                    result = json.loads(result)
+
+                if result['success']:
+                    print(f"Success: {result['message']}")
+                    print(f"User ID: {result['user_id']}")
+                else:
+                    print(f"Error: {result['message']}")
+                    print(f"Error code: {result['error_code']}")
+
+                connection.close()
+                cursor.close()
+
+                return result['success'], result['message']
                     
         except Exception as e:
-            Connection.rollback()
+            connection.rollback()
             print(f"Ошибка при вызове функции: {e}")
             return False
 
-        if username in self.users:
-            return False  # Пользователь уже существует
+    def verify_user(self, email, password):
+        """Проверка логина и пароля"""
         
-        password_hash, salt = self.hash_password(password)
-        
-        self.users[username] = {
-            "id": self.next_user_id,
-            "username": username,
-            "password_hash": password_hash,
-            "salt": salt,
-            "created_at": datetime.now(),
-            "is_active": True
-        }
-        self.next_user_id += 1
-        return True
-            
+        connection = self.create_connection_db()
+
+        try:
+            with connection.cursor() as cursor:
+                # Шифрование пароля
+                password_hash, salt = self.hash_password(password=password, salt='agent')
+                
+                # Вызываем функцию PostgreSQL
+                cursor.callproc('verify_user_check', [
+                    email,                   # p_email
+                    password_hash,           # p_password_hash
+                ])
+
+                # Получаем результат (true/false)
+                result = cursor.fetchone()[0]
+                
+                if isinstance(result, str):
+                    result = json.loads(result)
+
+                if result['success']:
+                    print(f"Success: {result['message']}")
+                    print(f"User ID: {result['user_id']}")
+                    print(f"Role: {result['role']}")
+                    print(f"Is_active {result['is_active']}")
+                else:
+                    print(f"Error: {result['message']}")
+                    print(f"Error code: {result['error_code']}")
+
+                connection.close()
+                cursor.close()
+
+                return result['success'], result['message'], result['lastname'], result['firstname']
+                    
+        except Exception as e:
+            connection.rollback()
+            print(f"Ошибка при вызове функции: {e}")
+            return False
+
+    def hash_password(self, password, salt=None):
+        """Хеширование пароля с солью"""
+        if salt is None:
+            salt = secrets.token_hex(16)
+        password_hash = hashlib.pbkdf2_hmac(
+            'sha256',
+            password.encode('utf-8'),
+            salt.encode('utf-8'),
+            100000
+        ).hex()
+        return password_hash, salt     
 
 
 class AuthDatabaseMock:

@@ -168,7 +168,7 @@ def render_chat_interface():
         # Добавление ответа ассистента в историю
         st.session_state.messages.append({"role": "assistant", "content": response})
 
-def render_auth_interface(auth_manager):
+def render_auth_interface(auth_manager, database_manager):
     """Отрисовка интерфейса аутентификации"""
     st.set_page_config(page_title="Авторизация", page_icon="🔐")
     
@@ -187,28 +187,31 @@ def render_auth_interface(auth_manager):
     
     with tab1:
         with st.form("login_form"):
-            username = st.text_input("Логин")
+            mail = st.text_input("Почта")
             password = st.text_input("Пароль", type="password")
             submit = st.form_submit_button("Войти")
             
             if submit:
-                if auth_manager.login_user(username, password):
-                    st.success("Успешный вход!")
+                result, message, lastname, firstname = database_manager.verify_user(mail, password)
+                if result == True:
+                    st.success(message)
                     time.sleep(1)
                     st.rerun()
                 else:
-                    st.error("Неверный логин или пароль")
+                    st.error(message)
     
     with tab2:
         with st.form("register_form"):
-            new_username = st.text_input("Новый логин", placeholder="Введите логин")
-            new_password = st.text_input("Новый пароль", type="password", placeholder="Не менее 6 символов")
-            confirm_password = st.text_input("Подтвердите пароль", type="password")
+            new_mail = st.text_input("Почта", placeholder="Введите mail")
+            new_password = st.text_input("Пароль", type="password", placeholder="Не менее 6 символов")
+            new_firstname = st.text_input("Имя", placeholder="Введите имя")
+            new_lastname = st.text_input("Фамилия", placeholder="Введите фамилию")
+            new_phone = st.text_input("Телефон", placeholder="Введите телефон")
             submit_register = st.form_submit_button("Зарегистрироваться")
             
             if submit_register:
-                result = auth_manager.register_user(new_username, new_password, confirm_password)
-                if result == "success":
-                    st.success("Пользователь создан! Теперь вы можете войти.")
+                result, message = database_manager.create_user(new_mail, new_password, new_firstname, new_lastname, new_phone)
+                if result == True:
+                    st.success(message)
                 else:
-                    st.error(result)
+                    st.error(message)

@@ -1,33 +1,100 @@
--- Функция которая возвращает true/false
 CREATE OR REPLACE FUNCTION create_user_check(
-	p_email VARCHAR(255),
+    p_email VARCHAR(255),
     p_password_hash VARCHAR(255),
     p_role VARCHAR(50),
     p_first_name VARCHAR(100),
     p_last_name VARCHAR(100),
-	p_phone VARCHAR(20),
-	p_avatar_url VARCHAR(500),
-	p_is_active boolean,
-	p_created_at TIMESTAMP,
-	updated_at TIMESTAMP,
-    last_login TIMESTAMP,
-    last_activity TIMESTAMP
+    p_phone VARCHAR(20),
+    p_avatar_url VARCHAR(500),
+    p_is_active BOOLEAN,
+    p_created_at TIMESTAMP,
+    p_updated_at TIMESTAMP,
+    p_last_login TIMESTAMP,
+    p_last_activity TIMESTAMP
 )
-
-RETURNS BOOLEAN AS $$
+RETURNS JSON AS $$
+DECLARE
+    result_json JSON;
+    new_user_id UUID;
 BEGIN
-
     -- Проверяем существование email
     IF EXISTS (SELECT 1 FROM users WHERE email = p_email) THEN
-        RETURN false;
+        result_json := json_build_object(
+            'success', false,
+            'message', 'Email already exists',
+            'error_code', 'EMAIL_EXISTS'
+        );
+        RETURN result_json;
+    END IF;
+    
+    -- Проверяем валидность роли
+    IF p_role NOT IN ('student', 'teacher', 'admin') THEN
+        result_json := json_build_object(
+            'success', false,
+            'message', 'Invalid role',
+            'error_code', 'INVALID_ROLE'
+        );
+        RETURN result_json;
     END IF;
     
     -- Создаем пользователя
-    INSERT INTO users (username, email) VALUES (p_username, p_email);
+    INSERT INTO users (
+        email,
+        password_hash,
+        role,
+        first_name,
+        last_name,
+        phone,
+        avatar_url,
+        is_active,
+        created_at,
+        updated_at,
+        last_login,
+        last_activity
+    ) VALUES (
+        p_email,
+        p_password_hash,
+        p_role,
+        p_first_name,
+        p_last_name,
+        p_phone,
+        p_avatar_url,
+        p_is_active,
+        p_created_at,
+        p_updated_at,
+        p_last_login,
+        p_last_activity
+    )
+    RETURNING user_id INTO new_user_id;
     
-    RETURN true;
+    result_json := json_build_object(
+        'success', true,
+        'message', 'User created successfully',
+        'user_id', new_user_id
+    );
+    RETURN result_json;
+    
 EXCEPTION
+    WHEN not_null_violation THEN
+        result_json := json_build_object(
+            'success', false,
+            'message', 'Required field is missing',
+            'error_code', 'NOT_NULL_VIOLATION'
+        );
+        RETURN result_json;
+    WHEN check_violation THEN
+        result_json := json_build_object(
+            'success', false,
+            'message', 'Check constraint violation',
+            'error_code', 'CHECK_VIOLATION'
+        );
+        RETURN result_json;
     WHEN others THEN
-        RETURN false;
+        result_json := json_build_object(
+            'success', false,
+            'message', SQLERRM,
+            'error_code', SQLSTATE
+        );
+        RETURN result_json;
 END;
 $$ LANGUAGE plpgsql;

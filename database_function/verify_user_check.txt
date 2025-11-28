@@ -1,0 +1,34 @@
+CREATE OR REPLACE FUNCTION verify_user_check(
+    p_email VARCHAR(255),
+    p_password_hash VARCHAR(255)
+)
+RETURNS JSON AS $$
+DECLARE
+    user_id UUID;
+    user_role VARCHAR(50);
+    user_is_active BOOLEAN;
+BEGIN
+    -- Ищем пользователя и получаем нужные поля
+    SELECT user_id, role, is_active 
+    INTO user_id, user_role, user_is_active
+    FROM users 
+    WHERE email = p_email AND password_hash = p_password_hash;
+    
+    -- Если пользователь найден
+    IF user_id IS NOT NULL THEN
+        RETURN json_build_object(
+            'success', true,
+            'message', 'User verified successfully',
+            'user_id', user_id,
+            'role', user_role,
+            'is_active', user_is_active
+        );
+    ELSE
+        RETURN json_build_object(
+            'success', false,
+            'message', 'The user was not found or credentials are incorrect',
+            'error_code', 'USER_NOT_FOUND'
+        );
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
