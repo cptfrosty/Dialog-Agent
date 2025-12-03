@@ -63,6 +63,49 @@ agent = DialogAgent(qdrant, aitunnel)
 
 PS D:\projects\Python\Dialog-Agent> streamlit run app/website/app.py
 
+## Получение собственных пакетов через setup.py
+
+Первоначально нужно выполнить команду в терминале
+
+```
+pip install -e .
+```
+
+## Роуты
+
+### Auth
+POST   /auth/register
+POST   /auth/login
+GET    /auth/me
+POST   /auth/logout
+POST   /auth/refresh-token
+POST   /auth/change-password
+POST   /auth/reset-password/request
+POST   /auth/reset-password/confirm
+
+### RAG - Документы
+POST   /rag/documents/upload
+POST   /rag/documents/upload-batch
+GET    /rag/documents
+GET    /rag/documents/{document_id}
+DELETE /rag/documents/{document_id}
+
+### RAG - Поиск
+POST   /rag/search
+GET    /rag/search/suggestions
+
+### RAG - Генерация
+POST   /rag/generate
+POST   /rag/chat
+GET    /rag/chat/{conversation_id}/history
+
+### RAG - Система
+GET    /rag/status
+POST   /rag/reindex
+GET    /rag/health
+GET    /rag/analytics/queries
+GET    /rag/analytics/documents
+
 ## To-Do
 - [x] Создание новых чатов
 - [ ] Привязка к базе данных PostgreSQL
